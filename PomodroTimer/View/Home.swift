@@ -42,9 +42,10 @@ struct Home: View {
 
 
                     Button {
-                        if pomodroModel.isStarted{
-                            
-                        }else{
+                        if pomodroModel.isStarted {
+                            pomodroModel.stopTimer()
+
+                        } else {
                             pomodroModel.addNewTimer = true
                         }
 
@@ -55,8 +56,90 @@ struct Home: View {
 
         }.padding()
             .background { Color(.black).ignoresSafeArea()
-        }.preferredColorScheme(.dark) }
+        }.overlay(content: {
+            ZStack {
+                Color.black.opacity(pomodroModel.addNewTimer ? 0.25 : 0).onTapGesture {
+                    pomodroModel.hour = 0
+                    pomodroModel.minutes = 0
+                    pomodroModel.seconds = 0
+                    pomodroModel.addNewTimer = false
+
+                }
+
+                NewTimerView().frame(maxHeight: .infinity, alignment: .bottom)
+                    .offset(y: pomodroModel.addNewTimer ? 0 : 400)
+            }.animation(.easeInOut, value: pomodroModel.addNewTimer)
+        })
+            .preferredColorScheme(.dark)
+            .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) {
+
+            _ in
+
+            if pomodroModel.isStarted {
+                pomodroModel.updateTimer()
+            }
+
+        }
+
+    }
+
+
+    @ViewBuilder
+    func NewTimerView() -> some View {
+        VStack(spacing: 15) {
+            Text("Add Timer").font(.title2.bold()).foregroundColor(.white).padding(.top, 10)
+
+            HStack(spacing: 15) {
+                Text("\(pomodroModel.hour) hr").font(.title3).fontWeight(.semibold).foregroundColor(.black).padding(.horizontal, 20).padding(.vertical, 12).background {
+                    Capsule().fill(.red.opacity(0.07))
+                }.contextMenu { ContextMenuOptions(maxValue: 12, hint: "saat") { value in
+                        pomodroModel.hour = value
+                    }
+                }
+
+
+                Text("\(pomodroModel.minutes) minute").font(.title3).fontWeight(.semibold).foregroundColor(.black).padding(.horizontal, 20).padding(.vertical, 12).background {
+                    Capsule().fill(.red.opacity(0.07))
+                }.contextMenu { ContextMenuOptions(maxValue: 60, hint: "min") { value in
+                        pomodroModel.minutes = value
+                    }
+                }
+
+
+                Text("\(pomodroModel.seconds) sec").font(.title3).fontWeight(.semibold).foregroundColor(.black).padding(.horizontal, 20).padding(.vertical, 12).background {
+                    Capsule().fill(.red.opacity(0.07))
+                }.contextMenu { ContextMenuOptions(maxValue: 60, hint: "sec") { value in
+                        pomodroModel.seconds = value
+                    }
+                }
+            }.padding(.top, 20)
+
+            Button {
+                pomodroModel.startTimer()
+
+            } label: {
+                Text("Save").font(.title3).foregroundColor(.black).fontWeight(.semibold).padding(.vertical).padding(.horizontal, 100).background {
+                    Capsule().fill(Color(.black)) }
+            }.disabled(pomodroModel.seconds == 0)
+                .opacity(pomodroModel.seconds == 0 ? 0.05 : 1)
+                .padding(.top)
+
+        }.padding().frame(maxWidth: .infinity).background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color(.purple)).ignoresSafeArea())
+
+    }
+
+    @ViewBuilder
+    func ContextMenuOptions(maxValue: Int, hint: String, onClick: @escaping(Int) -> ()) -> some View {
+        ForEach(0...maxValue, id: \.self) {
+            value in Button("\(value) \(hint)") {
+                onClick(value)
+            }
+        }
+    }
 }
+
+
+
 
 struct Home_Previews: PreviewProvider {
     static var previews: some View {
