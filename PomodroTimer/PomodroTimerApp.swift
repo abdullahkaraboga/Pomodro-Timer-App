@@ -9,12 +9,11 @@ import SwiftUI
 
 @main
 struct PomodroTimerApp: App {
-    let persistenceController = PersistenceController.shared
+    @StateObject var pomodroModel: PomodroModel = .init()
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            ContentView().environmentObject(pomodroModel)
         }
     }
 }
