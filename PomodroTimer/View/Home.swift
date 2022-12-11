@@ -34,7 +34,7 @@ struct Home: View {
                             }).frame(width: size.width, height: size.height, alignment: .center).offset(x: size.height / 2).rotationEffect(.init(degrees: pomodroModel.progress * 360))
                         }
 
-                        Text(pomodroModel.timerStringValue).font(.system(size: 45, weight: .light)).rotationEffect(.init(degrees: -90)).animation(.none, value: pomodroModel.progress)
+                        Text(pomodroModel.timerStringValue).font(.system(size: 45, weight: .light)).rotationEffect(.init(degrees: 90)).animation(.none, value: pomodroModel.progress)
 
                     }.padding(60).frame(height: proxy.size.width)
                         .rotationEffect(.init(degrees: -90
@@ -44,18 +44,20 @@ struct Home: View {
                     Button {
                         if pomodroModel.isStarted {
                             pomodroModel.stopTimer()
+                            
+                            UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
 
                         } else {
                             pomodroModel.addNewTimer = true
                         }
 
                     } label: {
-                        Image(systemName: !pomodroModel.isStarted ? "timer" : "pause").font(.largeTitle.bold()).foregroundColor(.white).frame(width: 80, height: 80).background(Circle().fill(Color(.red)))
+                        Image(systemName: !pomodroModel.isStarted ? "timer" : "stop.fill").font(.largeTitle.bold()).foregroundColor(.white).frame(width: 80, height: 80).background(Circle().fill(Color(.systemBlue)))
                     }.shadow(color: Color(.red), radius: 8, x: 0, y: 0)
                 }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center) }
 
         }.padding()
-            .background { Color(.black).ignoresSafeArea()
+            .background { Color(.white).ignoresSafeArea()
         }.overlay(content: {
             ZStack {
                 Color.black.opacity(pomodroModel.addNewTimer ? 0.25 : 0).onTapGesture {
@@ -79,6 +81,14 @@ struct Home: View {
                 pomodroModel.updateTimer()
             }
 
+        }.alert("Con", isPresented: $pomodroModel.isFinished) {
+            Button("Start New", role: .cancel) {
+                pomodroModel.stopTimer()
+            }
+            Button("Close", role: .destructive) {
+                pomodroModel.stopTimer()
+                pomodroModel.addNewTimer = true
+            }
         }
 
     }
@@ -90,15 +100,15 @@ struct Home: View {
             Text("Add Timer").font(.title2.bold()).foregroundColor(.white).padding(.top, 10)
 
             HStack(spacing: 15) {
-                Text("\(pomodroModel.hour) hr").font(.title3).fontWeight(.semibold).foregroundColor(.black).padding(.horizontal, 20).padding(.vertical, 12).background {
+                Text("\(pomodroModel.hour) hr").font(.title3).fontWeight(.semibold).foregroundColor(.white).padding(.horizontal, 20).padding(.vertical, 12).background {
                     Capsule().fill(.red.opacity(0.07))
-                }.contextMenu { ContextMenuOptions(maxValue: 12, hint: "saat") { value in
+                }.contextMenu { ContextMenuOptions(maxValue: 12, hint: "hr") { value in
                         pomodroModel.hour = value
                     }
                 }
 
 
-                Text("\(pomodroModel.minutes) minute").font(.title3).fontWeight(.semibold).foregroundColor(.black).padding(.horizontal, 20).padding(.vertical, 12).background {
+                Text("\(pomodroModel.minutes) minute").font(.title3).fontWeight(.semibold).foregroundColor(.white).padding(.horizontal, 20).padding(.vertical, 12).background {
                     Capsule().fill(.red.opacity(0.07))
                 }.contextMenu { ContextMenuOptions(maxValue: 60, hint: "min") { value in
                         pomodroModel.minutes = value
